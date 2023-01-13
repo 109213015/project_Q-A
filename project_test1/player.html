@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<style type="text/css">
+body {
+background-color:#6E6E6E;
+width: 600px; 
+margin:10px auto;
+padding: 20px;
+margin-top:20px;
+border: 5px solid Thistle;
+width: 600px;
+line-height: 28px;
+color:snow;
+font-family:標楷體;
+}
+h1 {color:snow; text-align:center;}
+table {margin: 15px auto; border: 4px solid Thistle; width:420px;margin-top:30px;}
+td {text-align:left; padding:5px 10px;border:2px solid Thistle;}
+th {padding:5px 10px; color:ivory;}
+</style>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>UI</title>
+</head>
+<body>
+玩家名稱:<input type="text" id="name">
+<button onclick="doInit()">Connect</button><br/> 
+<button onclick="ans()">我要搶答</button><br/><hr>
+<div id="myans" style="display:none">
+    我的答案:<input type="text" id="msg">
+    <button onclick="sendMsg()">確定</button><br/>
+</div>
+<div id="messages"></div>
+<div id="end"></div>
+</body>
+<script>
+function log_msg(msg) {
+	var p = document.createElement("p");
+	p.innerHTML = msg;
+	messages.appendChild(p);
+}
+var s; //socket object for connection
+var y;
+var name;
+var answer;
+function doInit() {
+	try {
+		//let host = "ws://localhost:4545/"; //設定socker server的ip:port
+		let host = "ws://10.99.1.159:4545/";
+		s = new WebSocket(host); //建立socket元件
+		//設定幾個主要事件
+		s.onopen = function (e) { 
+		    nickname= document.getElementById('name').value;
+		    name=nickname;
+		    s.send("player:"+name);
+		    log_msg("登入中...");
+			s.send("start:"+name);
+	    };
+		s.onclose = function (e) { log_msg("connection closed."); };
+		s.onerror = function (e) { log_msg("connection error."); };
+		//當server送訊息來時
+		s.onmessage = function (e) {
+		    if (e.data=='遊戲結束') {
+			    log_msg("主持人已結束遊戲!");
+				log_msg("遊戲結果");
+			} else {
+		    strs = e.data.split(':');
+			if (strs[0]=='error') {
+				member=strs[1].split("/");
+				if (member[0]==name) {
+				    log_msg("登入失敗~此玩家已登入!");
+			        again='<a href="UI.html">回首頁</a>';
+				    log_msg(again);
+				} else if (member[0]=='主持人') {
+				    log_msg("不能有兩位主持人!");
+				} 
+				else {
+				    log_msg("此玩家登入失敗~");
+				}
+			}
+		    else if (strs[0]=="host") {
+			    log_msg("主持人:"+strs[1]);
+		    }
+            else if (strs[0]=="player") {
+			    log_msg(strs[1]+" login...");
+		    }
+		    else if (strs[0]=="回答") {
+			    data2=strs[1].split("@");
+			    log_msg(data2[1]+"回答:"+data2[0]);
+			    if (data2[0]==answer) {
+				    log_msg(data2[1]+"答對了!+1分");
+				    document.getElementById("myans").style.display="none";
+				    log_msg("等候主持人出下一題...");
+			    } else {
+				    log_msg(data2[1]+"答錯了QQ");
+				    document.getElementById("myans").style.display="none";
+				    log_msg("重新開放搶答");
+			    }
+		    }
+		    else if (strs[0]=="題目") {
+			    question='<font color="gold">題目:'+strs[1]+'</font>';
+				log_msg(question);
+		    }
+		    else if (strs[0]=="state") {
+			    log_msg(strs[1]);
+		    }
+		    else if (strs[0]=="ans") {
+			    data=strs[1].split('#');
+			    log_msg(data[0]+data[1]);
+			    if (data[0]==name && data[1]=="搶到答題權") {
+			        document.getElementById("myans").style.display="block";
+			    } 
+	        }
+		    else if (strs[0]=="解答") {
+			    answer=strs[1];
+			    log_msg("開始搶答!");
+		    }
+		    else if (strs[0]=="end") {
+			    if (strs[1]=="重新開放搶答") {
+				    log_msg("重新開放搶答");
+			    } else {
+				    log_msg("等待主持人出下一題...");
+			    }
+		    }
+            else {
+			    log_msg(e.data);
+			    end='<a href="UI.html">回首頁</a>';
+	            log_msg(end);
+			}
+			}
+	    };
+	} catch (ex) {
+		log_msg("connection exception:" + ex);
+	}
+}
+function sendMsg() {
+	inputBox = document.getElementById('msg');
+    s.send("回答:"+inputBox.value+"@"+name);
+	inputBox.value = "";
+}
+function ans() {
+	s.send("ans:"+name+"#搶答中...");
+	name.value = "";
+}
+
+</script>
+</html>
