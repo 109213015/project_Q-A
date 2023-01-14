@@ -2,18 +2,18 @@
 import asyncio
 import websockets
 clients = [] #to store all connected cleints
-member = []
-count = []
-end = []
-lockSign=1
+member = [] #有誰登入遊戲
+count = [] #玩家的得分
+end = [] #遊戲結果
+lockSign=1 #答題權一開始鎖住
 owner=None
-lockmember=0
+
 #handler for socket message activities
 async def handler(websocket, path):
 	global lockSign, owner
 	userName='unknown'
-	data='unknown'
-	answer='unknown'
+	data='unknown' #玩家:?分
+	answer='unknown' #解答
 	if websocket not in clients:
 		clients.append(websocket) #append new cleint to the array
 	async for message in websocket:
@@ -28,36 +28,35 @@ async def handler(websocket, path):
 			#await websocket.close()
 		else:
 			msg = message.split(":")
-			if msg[0]=='start':
+			if msg[0]=='start': #判斷玩家名稱是否重複
 				if msg[1] not in member:
 					member.append(msg[1])
 					count.append(0)
 				else:
 					await brocast("error:"+msg[1]+"/此玩家已登入")
-			elif msg[0]=='解答':
+			elif msg[0]=='解答': #收到主持人設好的答案
 				answer=msg[1] 
-				lockSign=0
+				lockSign=0 #開始搶答後解鎖
 				await brocast(message)
-			elif msg[0]=='ans':
+			elif msg[0]=='ans': #收到玩家的搶答
 				data=msg[1]
 				msgdata=data.split("#")
-				await brocast("state:"+msgdata[0]+msgdata[1])
-				if lockSign > 0:
+				await brocast("state:"+msgdata[0]+msgdata[1]) #哪個玩家搶答中
+				if lockSign > 0: #沒搶到
 					await brocast(msg[0]+":"+msgdata[0]+"#沒有搶到答題權")
 				else:
-					lockSign = 1
+					lockSign = 1 #搶到了之後鎖住不讓別人搶
 					owner=websocket
 					await brocast(msg[0]+":"+msgdata[0]+"#搶到答題權")
-			elif msg[0]=="結果":
+			elif msg[0]=="結果": #收到主持人方判斷玩家是否答題正確
 				cnt=msg[1].split("@")
-				if cnt[0]=='no':
-					lockSign=0
+				if cnt[0]=='no': #答錯了
+					lockSign=0 #解鎖
 					await websocket.send('end:重新開放搶答')
-				else:
-					site=member.index(cnt[1])
-					count[site]+=1
-					await websocket.send('end:出下一題') 
-					lockSign=0                
+				else: #答對
+					site=member.index(cnt[1]) #找該玩家在陣列的位置
+					count[site]+=1 #+1分
+					await websocket.send('end:出下一題')                
 			else:
 				await brocast(message)
 	

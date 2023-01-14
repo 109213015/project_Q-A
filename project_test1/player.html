@@ -41,20 +41,20 @@ function log_msg(msg) {
 }
 var s; //socket object for connection
 var y;
-var name;
-var answer;
+var name; //玩家名稱
+var answer; //解答
 function doInit() {
 	try {
 		//let host = "ws://localhost:4545/"; //設定socker server的ip:port
-		let host = "ws://10.99.1.159:4545/";
+		let host = "ws://10.99.1.161:4545/";
 		s = new WebSocket(host); //建立socket元件
 		//設定幾個主要事件
 		s.onopen = function (e) { 
 		    nickname= document.getElementById('name').value;
-		    name=nickname;
+		    name=nickname; //玩家名稱
 		    s.send("player:"+name);
 		    log_msg("登入中...");
-			s.send("start:"+name);
+			s.send("start:"+name); //讓server判斷是否有同名玩家
 	    };
 		s.onclose = function (e) { log_msg("connection closed."); };
 		s.onerror = function (e) { log_msg("connection error."); };
@@ -65,26 +65,23 @@ function doInit() {
 				log_msg("遊戲結果");
 			} else {
 		    strs = e.data.split(':');
-			if (strs[0]=='error') {
+			if (strs[0]=='error') { //有相同玩家登入或不只一位主持人登入
 				member=strs[1].split("/");
-				if (member[0]==name) {
+				if (member[0]==name) { //在重複名稱的玩家頁面顯示警告訊息
 				    log_msg("登入失敗~此玩家已登入!");
 			        again='<a href="UI.html">回首頁</a>';
 				    log_msg(again);
-				} else if (member[0]=='主持人') {
+				} else if (member[0]=='主持人') { 
 				    log_msg("不能有兩位主持人!");
 				} 
-				else {
+				else { //在其他正常玩家頁面顯示的訊息
 				    log_msg("此玩家登入失敗~");
 				}
 			}
-		    else if (strs[0]=="host") {
-			    log_msg("主持人:"+strs[1]);
-		    }
-            else if (strs[0]=="player") {
+            else if (strs[0]=="player") { //玩家登入中
 			    log_msg(strs[1]+" login...");
 		    }
-		    else if (strs[0]=="回答") {
+		    else if (strs[0]=="回答") { //玩家作答 答完題不管答對答錯，答題方塊均隱藏
 			    data2=strs[1].split("@");
 			    log_msg(data2[1]+"回答:"+data2[0]);
 			    if (data2[0]==answer) {
@@ -97,32 +94,32 @@ function doInit() {
 				    log_msg("重新開放搶答");
 			    }
 		    }
-		    else if (strs[0]=="題目") {
+		    else if (strs[0]=="題目") { //主持人設的題目
 			    question='<font color="gold">題目:'+strs[1]+'</font>';
 				log_msg(question);
 		    }
-		    else if (strs[0]=="state") {
+		    else if (strs[0]=="state") { //從server送來的 顯示哪些玩家在搶答
 			    log_msg(strs[1]);
 		    }
-		    else if (strs[0]=="ans") {
+		    else if (strs[0]=="ans") { //顯示玩家是否搶答成功
 			    data=strs[1].split('#');
 			    log_msg(data[0]+data[1]);
-			    if (data[0]==name && data[1]=="搶到答題權") {
+			    if (data[0]==name && data[1]=="搶到答題權") { //搶到答題權則顯示回答方塊
 			        document.getElementById("myans").style.display="block";
 			    } 
 	        }
-		    else if (strs[0]=="解答") {
+		    else if (strs[0]=="解答") { //主持人設好解答才開放搶答
 			    answer=strs[1];
 			    log_msg("開始搶答!");
 		    }
-		    else if (strs[0]=="end") {
+		    else if (strs[0]=="end") { //看玩家是否回答正確
 			    if (strs[1]=="重新開放搶答") {
 				    log_msg("重新開放搶答");
 			    } else {
 				    log_msg("等待主持人出下一題...");
 			    }
 		    }
-            else {
+            else { //印出遊戲結果
 			    log_msg(e.data);
 			    end='<a href="UI.html">回首頁</a>';
 	            log_msg(end);
@@ -133,12 +130,12 @@ function doInit() {
 		log_msg("connection exception:" + ex);
 	}
 }
-function sendMsg() {
+function sendMsg() { //玩家的回答
 	inputBox = document.getElementById('msg');
     s.send("回答:"+inputBox.value+"@"+name);
 	inputBox.value = "";
 }
-function ans() {
+function ans() { //搶答鈕
 	s.send("ans:"+name+"#搶答中...");
 	name.value = "";
 }
