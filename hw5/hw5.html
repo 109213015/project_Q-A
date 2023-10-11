@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+body {
+background-color:#E6E6F2;
+}
+#main {
+width: 650px;
+margin: 0px auto;
+line-height: 28pt;
+font-size: 16pt;
+}
+legend {
+font-weight: bold;
+color: red;
+margin-left:20px;
+}
+input[type=submit],input[type=reset],input[type=button],input[type=image],button {
+font-family: times new roman;
+font-size:14pt;
+vertical-align:middle;
+}
+h2 {
+text-align:center;
+color:darkgreen;
+}
+.tit{
+display:inline-block;
+width: 80px;
+font-size:14pt;
+vertical-align:top;
+text-align:right;
+padding: 0px 5px;
+}
+#year,#month,#day,#year2,#month2,#day2{
+display:inline-block;
+font-size:14pt;
+}
+#f1 {
+width: 500px;
+background-color:#DAB1D5;
+border-radius:20px;
+margin-left:50px;
+}
+#f2 {
+width: 500px;
+background-color:#DEFFAC;
+border-radius:20px;
+margin-left:50px;
+}
+#f3 {
+width: 500px;
+background-color:#CDCD9A;
+border-radius:20px;
+margin-left:50px;
+}
+#f4 {
+width: 500px;
+background-color:#B9B9FF;
+border-radius:20px;
+margin-left:50px;
+}
+#buttons {
+text-align:center;
+}
+#title,#title2, textarea{
+font-size:14pt;
+}
+table {margin: 15px auto; border: 3px solid 	#8E8E8E;}
+td {text-align:left; padding:5px 10px;border:2px solid 	#8E8E8E;}
+
+</style>
+<script type="text/javascript">
+var store=[];
+var one;
+var one2;
+var tbl;
+var Today=new Date();
+var deadline;
+var daynum;
+var days;
+var tbl2;
+var tbl3;
+//var arr1=[];
+window.onload = function() {
+    var time= "<tr><font size='4'><b>&nbsp;今天日期是 " + Today.getFullYear()+ " 年 " + (Today.getMonth()+1) + " 月 " + Today.getDate() + " 日</b></font></tr><br/>";
+    $("time").innerHTML=time;
+    $("add").onclick=add;
+    $("all").onclick=show;
+    remind();
+    showkey();
+    $("overdue").onclick=over;
+    $("choose").selectedIndex = 0;
+    $("delete").onclick=deletenote;
+    $("changenote").onclick=changenote;
+    $("yes").onclick=yes;
+}
+function add() { //按'新增'後將資料存到localstorage
+    var add=[];
+    add[0]=$("year").value+"/"+$("month").value+"/"+$("day").value;
+    add[1]=$("title").value;
+    add[2]=$("memo").value;
+    store.push(add);
+    one=JSON.stringify(add);
+    localStorage.setItem(add[1], one); //以主旨為key
+    addkey(one);  //將新加的這筆資料加入選單中    
+}
+function addkey(one) { //加入選單
+    let opt2=new Option();
+    var note5 = JSON.parse(one);
+    opt2.text = note5[1];
+    $("choose").add(opt2);
+}
+function show() { //按'我的記事'後出現所有記事
+    tbl="<table id=tbls><tr><td colspan='6' style='font-weight:bold'>所有記事(紅色表示過期)</td></tr>";
+    tbl+="<tr style='font-weight:bold'><td>日期</td><td>主旨</td><td>說明</td></tr>";
+    for (let i=0;i<localStorage.length;i++) {
+        var note2=JSON.parse(localStorage.getItem(localStorage.key(i)));
+        deadline=new Date(note2[0]);
+        daynum=deadline.getTime()-Today.getTime();
+        days=Math.floor(daynum/(24*3600*1000));
+        if (days>=-1) {
+            tbl+="<tr>";
+            for (let j=0;j<3;j++) {
+                tbl+="<td>"+note2[j]+"</td>";
+            }
+            tbl+="</tr>";
+        }
+        else {
+            tbl+="<tr style='color:red'>";
+            for (let j=0;j<3;j++) {
+                tbl+="<td>"+note2[j]+"</td>";
+            }
+            tbl+="</tr>";
+        }
+        
+    }
+    tbl+="</table>";
+    $("show").innerHTML=tbl;
+}
+function remind() { //出現所有提醒日程(3日內)
+    tbl2="<table><tr><td colspan='6' style='font-weight:bold'>待辦事項(3日內)</td></tr>";
+    tbl2+="<tr style='font-weight:bold'><td>日期</td><td>主旨</td><td>說明</td></tr>";
+    for (let i=0;i<localStorage.length;i++) {
+        var note=JSON.parse(localStorage.getItem(localStorage.key(i)));
+        deadline=new Date(note[0]);
+        daynum=deadline.getTime()-Today.getTime();
+        days=Math.floor(daynum/(24*3600*1000));
+        if (days<=3 && days>=-1) {
+            tbl2+="<tr>";
+            for (let j=0;j<3;j++) {
+                tbl2+="<td>"+note[j]+"</td>";
+            }
+            tbl2+="</tr>";
+        }
+    }
+    tbl2+="</table>";
+    $("quick").innerHTML=tbl2;
+}
+function over() { //刪掉過期記事
+    var size=localStorage.length;
+    var arr1=[];
+    for (let i=0;i<size;i++) {
+        let note3=JSON.parse(localStorage.getItem(localStorage.key(i)));
+        let deadline2=new Date(note3[0]);
+        let daynum2=deadline2.getTime()-Today.getTime();
+        let days2=Math.floor(daynum2/(24*3600*1000));
+        if (days2<-1) {
+            let note=JSON.parse(localStorage.getItem(localStorage.key(i)));
+            arr1.push(note[1]);         
+        }
+    }
+    for (let i=0;i<size;i++) { 
+        var note2=JSON.parse(localStorage.getItem(localStorage.key(i)));
+        for (let j=0;j<arr1.length;j++) {
+            if (note2[1]==arr1[j]) {
+                localStorage.removeItem(localStorage.key(i));
+                let v=0;
+                while ($("choose").options[v].text != note2[1]) {
+                    v+=1;
+                }
+                $("choose").remove(v);   
+            }             
+        }
+    }
+    var now3=time_now();
+    $("nowtime").innerHTML="<font size='4'><span>&#x1F55D</span>刪除過期記事時間: "+now3+"</font>";
+}
+function showkey() { //打開網頁出現目前localstorage儲存的資料
+    for (let i=0;i<localStorage.length;i++) {
+        let opt = new Option();
+        var note4 = JSON.parse(localStorage.getItem(localStorage.key(i)));
+        opt.text = note4[1];
+        $("choose").add(opt); 
+    }     
+}
+function deletenote() { //刪除選擇的記事
+    let correct; //以下~190行:校正選單資料順序與localstorage不同的狀況(在下兩個函式changenote(),yes()也會用到)
+    let key=$("choose").selectedIndex;
+    let note=JSON.parse(localStorage.getItem(localStorage.key(key)));
+    if ($("choose").options[key].text != note[1]) {
+        for (let i=0;i<localStorage.length;i++) {
+            let note2=JSON.parse(localStorage.getItem(localStorage.key(i)));
+            if (note2[1]==$("choose").options[key].text) {
+                correct=i;
+            }
+        }
+    } else {
+        correct=key;
+    }
+    localStorage.removeItem(localStorage.key(correct));
+    var now2=time_now();
+    $("nowtime").innerHTML="<font size='4'><span>&#x1F55D</span>刪除時間: "+now2+"</font>";
+    $("choose").remove(key);
+}
+function changenote() { //顯示選擇要更改的記事的原本資料
+    let correct;
+    let key=$("choose").selectedIndex; 
+    let note=JSON.parse(localStorage.getItem(localStorage.key(key)));  
+    if ($("choose").options[key].text != note[1]) {
+        for (let i=0;i<localStorage.length;i++) {
+            let note2=JSON.parse(localStorage.getItem(localStorage.key(i))); 
+            if (note2[1]==$("choose").options[key].text) {
+                correct=i;
+            }
+        }
+    } else {
+        correct=key;
+    }
+    var oldnote = JSON.parse(localStorage.getItem(localStorage.key(correct)));
+    tbl3="<tr><font size='4'>&nbsp;原時間: "+oldnote[0]+"</font></tr><br/>";
+    tbl3+="<tr><font size='4'>&nbsp;原主旨: "+oldnote[1]+"</font></tr><br/>";
+    tbl3+="<tr><font size='4'>&nbsp;原說明: "+oldnote[2]+"</font></tr><br/>";
+    $("changenote").innerHTML=tbl3;
+}
+function yes() { //更新更改後記事
+    var add2=[];
+    add2[0]=$("year2").value+"/"+$("month2").value+"/"+$("day2").value;
+    add2[1]=$("title2").value;
+    add2[2]=$("memo2").value;
+    store.push(add2);
+    one2=JSON.stringify(add2);
+    let correct;
+    let key=$("choose").selectedIndex;
+    let note=JSON.parse(localStorage.getItem(localStorage.key(key)));
+    if ($("choose").options[key].text != note[1]) {
+        for (let i=0;i<localStorage.length;i++) {
+            let note2=JSON.parse(localStorage.getItem(localStorage.key(i)));
+            if (note2[1]==$("choose").options[key].text) {
+                correct=i;
+            }
+        }
+    }else {
+        correct=key;
+    }
+    localStorage.setItem(localStorage.key(correct), one2); 
+    var now=time_now();
+    $("now").innerHTML="<span>&#x1F55D</span>修改時間: "+now;
+    $("choose").remove(key); //更改後主旨有變動 選單選項文字也會改
+    addkey(one2); 
+}
+function time_now() {
+    var today=new Date();
+    var currentDateTime =today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate()
+    +'('+today.getHours()+':'+today.getMinutes()+')';
+    return currentDateTime;
+}
+function $(id) {
+    return document.getElementById(id);
+}
+</script>
+<title>行事曆</title>
+</head>
+<body>
+<div id="main">
+<h2>Schedule</h2>
+<form id="join" method="post">
+<fieldset id="f1">
+<legend>New Memo</legend>
+<div id="time">
+</div>
+<span class="tit">待辦日期: </span><input type="text" id="year" name="year" size="5" value="2022" />年 <input type="text" id="month" name="month" size="3" />月 <input type="text" id="day" name="day" size="3"/>日<br />
+<span class="tit">主旨:</span><input type="text" id="title" name="tit" size="35"/><br />
+<span class="tit">說明:</span><textarea id="memo" name="txt" cols="35" rows="6"></textarea> <br />
+<div id="buttons">
+<tr><td><input type="button" value="新增" id="add" onclick="add()"/> <input type="reset" value="重新輸入"/> <input type="button" value="我的記事" id="all" onclick="show()"/> <input type="button" value="刪除過期記事" id="overdue" onclick="over()"/> <input type="button" value="刷新提醒" id="new" onclick="remind()"/></td></tr><br/>
+<tr><td><font size="4">選擇記事(依主旨): </font><select id="choose" name="choose"></select> <input type="button" value="刪除" id="delete" onclick="deletenote()"/> <input type="button" value="修改" id="change" onclick="changenote()"/></td></tr><br/>
+<div id="nowtime">
+</div>
+</div>
+</fieldset>
+</form>
+<fieldset id="f4">
+<legend>修改</legend>
+<div id="changenote">
+</div>
+<font size="4"><b> &nbsp;我要改成 </b><span>&#x1F447; &#x1F447; &#x1F447; </span><font/><br/>
+<span class="tit">待辦日期: </span><input type="text" id="year2" name="year2" size="5" value="2022"/>年 <input type="text" id="month2" name="month2" size="3"/>月 <input type="text" id="day2" name="day2" size="3"/>日<br />
+<span class="tit">主旨:</span><input type="text" id="title2" name="tit2" size="35"/><br />
+<span class="tit">說明:</span><textarea id="memo2" name="txt2" cols="35" rows="6"></textarea> <br />
+<tr><td> <input type="button" value="確認修改" id="yes" onclick="yes()" style="float:right"/></td></tr>
+<div id="now">
+</div>
+</fieldset>
+<fieldset id="f2">
+<legend>提醒</legend>
+<div id="quick">
+</div>
+</fieldset>
+<fieldset id="f3">
+<legend>記事</legend>
+<div id="show">
+</div>
+</fieldset>
+</div>
+</body>
+</html>
