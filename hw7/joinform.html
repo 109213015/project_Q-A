@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>會員管理功能</title>
+</head>
+<body style="background-color:#C9C9C9">
+<h2 align="center">追劇就是FUN!</h1>
+<p align="center">我已經是會員了 <span> &#x1F449 </span>
+<input type="button" name="button" id="button" value="直接登入" onclick="location.href='loginform.html'" ></p>
+<h2 align="center">加入會員</h1>
+<form action="join.php" method="post" name="formAdd" id="formAdd">
+  <table border="1" align="center" cellpadding="4">
+    <tr>
+      <th>欄位</th><th>資料</th>
+    </tr>
+    <tr>
+      <td>姓名</td><td><input type="text" name="sName" id="sName"></td>
+    </tr>
+    <tr>
+      <td>性別</td><td>
+      <input type="radio" name="sSex" id="radio" value="男" checked>男
+      <input type="radio" name="sSex" id="radio" value="女">女
+      <input type="radio" name="sSex" id="radio" value="其他">其他
+      </td>
+    </tr>
+    <tr>
+      <td>生日</td><td><input type="text" name="sBirthday" id="sBirthday"></td>
+    </tr>
+    <tr>
+      <td>電子郵件</td><td><input type="text" name="sMail" id="sMail"></td>
+    </tr>
+    <tr>
+      <td>電話</td><td><input type="text" name="sPhone" id="sPhone"></td>
+    </tr>
+    <tr>
+      <td>住址</td><td><input name="sAddr" type="text" id="sAddr" size="40"></td>
+    </tr>
+    <tr>
+      <td>我喜歡</td><td>
+      <input type="radio" name="sdrama" id="radio" value="電影" checked>電影
+      <input type="radio" name="sdrama" id="radio" value="韓劇">韓劇
+      <input type="radio" name="sdrama" id="radio" value="動漫">動漫
+      </td>
+    </tr>
+    <tr>
+      <td>喜歡的類型</td><td>
+      <input type="radio" name="sStyle" id="radio" value="愛情" checked>愛情
+      <input type="radio" name="sStyle" id="radio" value="奇幻">奇幻
+      <input type="radio" name="sStyle" id="radio" value="懸疑">懸疑
+      <input type="radio" name="sStyle" id="radio" value="驚悚">驚悚
+      <input type="radio" name="sStyle" id="radio" value="搞笑">搞笑
+      </td>
+    </tr>
+    <tr>
+      <td>設定帳號</td><td><input name="sAcc" type="text" id="sAcc" size="40"></td>
+    </tr>
+    <tr>
+      <td>設定密碼</td><td><input name="sPass" type="text" id="sPass" size="40"></td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center">
+      <input name="action" type="hidden" value="add">
+      <input type="submit" name="button" id="button" value="申請加入">
+      <input type="reset" name="button2" id="button2" value="重新填寫">
+      </td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>
